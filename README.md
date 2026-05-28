@@ -1,3 +1,8 @@
+## License
+
+Nickel is licensed under the Apache License 2.0 with additional attribution notice requirements. See the `LICENSE` and `NOTICE` files. Original author credit must be preserved when using or redistributing this code.
+
+
 # Nickel
 
 Nickel is a small custom programming language interpreter in development written in Python. It supports basic arithmetic, variable declaration, and variable reassignment, with source files using the `.nc` extension.
