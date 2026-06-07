@@ -9,6 +9,12 @@ if not args.filename.endswith('.nc'):
     parser.error('filename must end with .nc')
 
 
+env = {}
+
+temp = {}
+
+
+
 class Token:
     def __init__(self, type, value):
         self.type = type
@@ -17,6 +23,10 @@ class Token:
     def __repr__(self):
         return f"Token({self.type}, {self.value})"
 
+
+class Function:
+    def __init__(self, type):
+        self.type = type
 
 class NumNode:
     def __init__(self, val):
@@ -52,6 +62,7 @@ def tokenize(script):
             while i < len(script) and (script[i].isdigit() or script[i] == '.'):
                 num_str += script[i]
                 i += 1
+                continue
             tokens.append(Token("NUMBER", float(num_str)))
             continue  # Don't increment i again
         elif char == '+':
@@ -66,13 +77,18 @@ def tokenize(script):
             tokens.append(Token("LPAREN", char))
         elif char == ')':
             tokens.append(Token("RPAREN", char))
+        elif char == '"':
+            tokens.append(Token("DOUBQUOTE", char))
         elif char.isalpha():
             word = ""
-            while i < len(script) and script[i].isalpha():  # <-- ADD THIS
+            while i < len(script) and script[i].isalpha():
              word += script[i]
              i += 1
             if word == "let":
                 tokens.append(Token("LET", word))
+            elif word == "print":
+                tokens.append(Token("FUNCTION", word))
+                tokens.append(Token("LPAREN", word))
             else:
                 tokens.append(Token("NAME", word))
                 continue
@@ -82,13 +98,18 @@ def tokenize(script):
         i += 1
     return tokens
 
+
 def ast_parse(tokens):
-    # Pass 1: Handle * and /
+    pass1 = []
     if tokens[0].type == "LET":
+
         env[tokens[1].value] = tokens[3].value
     elif tokens[0].type == "NAME" and tokens[1].type == "EQUALS":
         env[tokens[0].value] = evaluate(ast_parse(tokens[2:]))
-    pass1 = []
+    elif tokens[0].type == "FUNCTION" and tokens[0].value == "print":
+        print(tokens[3].value)
+
+    
     i = 0
     while i < len(tokens):
         if tokens[i].type == "NUMBER":
@@ -127,7 +148,8 @@ def ast_parse(tokens):
             i += 2
         else:
             i += 1
-    
+    if pass2[0] == None:
+        pass2[0] == ""
     return pass2[0]
                                 
 def evaluate(node):
@@ -164,9 +186,16 @@ def readFile(filename):
 def math(expression):
     return(eval(expression))
 
+def debug():
+    lines = readFile(args.filename).splitlines()
+    for line in lines:
+        if line.strip():
+            token = tokenize(line)
+            print("\n" + str(token) + "\n")
+            print("\n" + str(ast_parse(token)) + "\n")
+            print(f"env: \n{env}\n")
+            print(f"temp: \n{temp}")
 
-
-env = {}
 
 def alloc(name, type, value):
     env[name] = type(value)
@@ -175,8 +204,4 @@ def alloc(name, type, value):
 def get(name):
     return env[name]
 
-lines = readFile(args.filename).splitlines()
-for line in lines:
-    if line.strip():
-        print(ast_parse(tokenize(line)))
-        print(env)
+debug()
